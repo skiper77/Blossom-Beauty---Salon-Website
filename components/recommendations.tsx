@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { Heart, Sparkles, Star, CheckCircle, ArrowRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { ReservationModal } from "@/components/reservation-modal"
 
 const recommendations = [
   {
@@ -67,6 +69,8 @@ const recommendations = [
 export function Recommendations() {
   const [visibleCards, setVisibleCards] = useState<number[]>([])
   const [activeCard, setActiveCard] = useState<number | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedService, setSelectedService] = useState("")
   const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -166,7 +170,13 @@ export function Recommendations() {
                 </div>
 
                 {/* CTA Button */}
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-all duration-300 group-hover:scale-[1.02]">
+                <Button 
+                  onClick={() => {
+                    setSelectedService(rec.service)
+                    setIsModalOpen(true)
+                  }}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-all duration-300 group-hover:scale-[1.02]"
+                >
                   Reservar {rec.service}
                   <ArrowRight className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
@@ -180,12 +190,17 @@ export function Recommendations() {
           <p className="text-muted-foreground mb-6">
             No esperes mas para transformar tu look. Nuestras expertas te esperan!
           </p>
-          <Button size="lg" className="bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full px-10 text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30">
+          <Button 
+            size="lg" 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full px-10 text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
+          >
             <Sparkles className="h-5 w-5 mr-2" />
             Reserva Tu Cita Ahora
           </Button>
         </div>
       </div>
+      <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   )
 }

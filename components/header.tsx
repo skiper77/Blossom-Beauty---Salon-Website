@@ -4,10 +4,12 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Menu, X, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ReservationModal } from "@/components/reservation-modal"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,7 +59,10 @@ export function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:block">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25">
+            <Button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25"
+            >
               Reservar Cita
             </Button>
           </div>
@@ -89,13 +94,20 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full mt-2 transition-all duration-300 hover:scale-[1.02]">
+              <Button 
+                onClick={() => {
+                  setIsModalOpen(true)
+                  setIsMenuOpen(false)
+                }}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full mt-2 transition-all duration-300 hover:scale-[1.02]"
+              >
                 Reservar Cita
               </Button>
             </div>
           </div>
         </nav>
       </div>
+      <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </header>
   )
 }

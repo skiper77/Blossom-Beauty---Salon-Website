@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Palette, Scissors, Wind, Sparkles } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { ReservationModal } from "@/components/reservation-modal"
 
 const services = [
   {
@@ -47,6 +49,8 @@ const services = [
 
 export function Services() {
   const [visibleCards, setVisibleCards] = useState<number[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedService, setSelectedService] = useState("")
   const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -130,7 +134,15 @@ export function Services() {
                 </ul>
                 <div className="flex items-center justify-between">
                   <span className="font-serif text-lg font-semibold text-primary">{service.price}</span>
-                  <Button variant="outline" size="sm" className="rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-105">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setSelectedService(service.title)
+                      setIsModalOpen(true)
+                    }}
+                    className="rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-105"
+                  >
                     Reservar
                   </Button>
                 </div>
@@ -139,6 +151,7 @@ export function Services() {
           ))}
         </div>
       </div>
+      <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   )
 }

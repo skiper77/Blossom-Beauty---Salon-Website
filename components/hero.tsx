@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { ReservationModal } from "@/components/reservation-modal"
 import { Sparkles, Heart } from "lucide-react"
 
 export function Hero() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     setIsVisible(true)
@@ -41,12 +44,18 @@ export function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/25">
+              <Button 
+                size="lg" 
+                onClick={() => setIsModalOpen(true)}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/25"
+              >
                 Reservar Cita
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full px-8 text-lg border-primary text-primary hover:bg-primary/10 transition-all duration-300 hover:scale-105">
-                Ver Servicios
-              </Button>
+              <Link href="#servicios">
+                <Button size="lg" variant="outline" className="rounded-full px-8 text-lg border-primary text-primary hover:bg-primary/10 transition-all duration-300 hover:scale-105">
+                  Ver Servicios
+                </Button>
+              </Link>
             </div>
 
             {/* Stats */}
@@ -94,6 +103,7 @@ export function Hero() {
           </div>
         </div>
       </div>
+      <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   )
 }

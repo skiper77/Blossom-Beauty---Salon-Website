@@ -16,7 +16,7 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Llamanos",
-    details: ["+1 (555) 123-4567"]
+    details: ["+57 3164136033"]
   },
   {
     icon: Mail,
