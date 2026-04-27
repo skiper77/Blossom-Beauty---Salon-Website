@@ -4,12 +4,27 @@ import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
-  Flower2, LogOut, Upload, Trash2, ImageIcon, Video, X, CheckCircle2, AlertCircle, Loader2
+  Flower2, LogOut, Upload, Trash2, ImageIcon, Video, X, CheckCircle2, AlertCircle, Loader2,
+  DollarSign, Pencil, Save
 } from "lucide-react"
 import type { GalleryItem } from "@/lib/supabase"
 
 const CATEGORIES = ["Tintes", "Peinados", "Planchados", "Keratinas", "Otro"]
 const MAX_FILE_SIZE_MB = 50
+
+const SERVICE_LABELS: Record<string, string> = {
+  tintes: "Tintes",
+  peinados: "Peinados",
+  planchados: "Planchados",
+  keratinas: "Keratinas",
+}
+
+type ServiceRow = {
+  id: string
+  price: string
+  description: string
+  features: string[]
+}
 
 export default function AdminPage() {
   const router = useRouter()
@@ -30,8 +45,15 @@ export default function AdminPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
+  // Services / prices state
+  const [services, setServices] = useState<ServiceRow[]>([])
+  const [editingService, setEditingService] = useState<ServiceRow | null>(null)
+  const [savingService, setSavingService] = useState(false)
+  const [serviceStatus, setServiceStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
+
   useEffect(() => {
     fetchItems()
+    fetchServices()
   }, [])
 
   async function fetchItems() {
@@ -110,6 +132,43 @@ export default function AdminPage() {
     await fetch(`/api/gallery/${id}`, { method: "DELETE" })
     setItems((prev) => prev.filter((item) => item.id !== id))
     setDeletingId(null)
+  }
+
+  async function fetchServices() {
+    const res = await fetch("/api/services")
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data)) setServices(data)
+    }
+  }
+
+  async function handleSaveService(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingService) return
+    setSavingService(true)
+    setServiceStatus(null)
+
+    const res = await fetch(`/api/services/${editingService.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        price: editingService.price,
+        description: editingService.description,
+        features: editingService.features,
+      }),
+    })
+
+    if (res.ok) {
+      const updated = await res.json()
+      setServices((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
+      setServiceStatus({ type: "success", message: "¡Precio actualizado con éxito!" })
+      setEditingService(null)
+    } else {
+      const data = await res.json()
+      setServiceStatus({ type: "error", message: data.error || "Error al guardar" })
+    }
+
+    setSavingService(false)
   }
 
   return (
@@ -348,6 +407,151 @@ export default function AdminPage() {
             </div>
           )}
         </section>
+        {/* Services / Prices Section */}
+        <section>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6 font-serif">
+            Gestionar precios y servicios
+          </h2>
+
+          {/* Edit modal */}
+          {editingService && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 md:p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-bold text-lg text-zinc-900 dark:text-white font-serif">
+                    Editar — {SERVICE_LABELS[editingService.id] ?? editingService.id}
+                  </h3>
+                  <button
+                    onClick={() => { setEditingService(null); setServiceStatus(null) }}
+                    className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveService} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      Precio
+                    </label>
+                    <input
+                      type="text"
+                      value={editingService.price}
+                      onChange={(e) => setEditingService({ ...editingService, price: e.target.value })}
+                      placeholder="Ej: Desde $80"
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      Descripción
+                    </label>
+                    <textarea
+                      value={editingService.description}
+                      onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      Características <span className="text-zinc-400 font-normal">(una por línea)</span>
+                    </label>
+                    <textarea
+                      value={editingService.features.join("\n")}
+                      onChange={(e) =>
+                        setEditingService({
+                          ...editingService,
+                          features: e.target.value.split("\n").filter((f) => f.trim() !== ""),
+                        })
+                      }
+                      rows={4}
+                      placeholder={"Balayage\nMechas\nColor Completo"}
+                      className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition resize-none font-mono text-sm"
+                    />
+                  </div>
+
+                  {serviceStatus && (
+                    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${
+                      serviceStatus.type === "success"
+                        ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
+                        : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+                    }`}>
+                      {serviceStatus.type === "success"
+                        ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                        : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+                      {serviceStatus.message}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => { setEditingService(null); setServiceStatus(null) }}
+                      className="flex-1 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors font-medium"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingService}
+                      className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {savingService ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {savingService ? "Guardando..." : "Guardar cambios"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Object.keys(SERVICE_LABELS).map((serviceId) => {
+              const saved = services.find((s) => s.id === serviceId)
+              const defaultPrices: Record<string, string> = {
+                tintes: "Desde $80", peinados: "Desde $50",
+                planchados: "Desde $120", keratinas: "Desde $150",
+              }
+              const currentPrice = saved?.price ?? defaultPrices[serviceId]
+              return (
+                <div
+                  key={serviceId}
+                  className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 flex flex-col gap-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-zinc-900 dark:text-white font-serif">
+                      {SERVICE_LABELS[serviceId]}
+                    </span>
+                    <DollarSign className="w-4 h-4 text-pink-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-pink-500 font-serif">{currentPrice}</p>
+                  {saved && (
+                    <p className="text-xs text-zinc-400 line-clamp-2">{saved.description}</p>
+                  )}
+                  <button
+                    onClick={() =>
+                      setEditingService({
+                        id: serviceId,
+                        price: saved?.price ?? defaultPrices[serviceId],
+                        description: saved?.description ?? "",
+                        features: saved?.features ?? [],
+                      })
+                    }
+                    className="mt-auto w-full py-2 rounded-xl border border-pink-200 dark:border-pink-800 text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
       </main>
     </div>
   )
