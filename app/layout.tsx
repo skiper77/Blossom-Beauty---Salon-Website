@@ -14,8 +14,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'Blossom Beauty Salon - Hair Color, Styling & Keratin',
-  description: 'Transform your look at Blossom Beauty Salon. Expert hair coloring, stunning hairstyles, professional straightening, and luxurious keratin treatments.',
+  title: 'ST Studio Belleza - Sarai Tarazona',
+  description: 'Transforma tu look en ST Studio Belleza. Expertos en coloración, peinados deslumbrantes, planchados profesionales y tratamientos de keratina de lujo.',
   generator: 'v0.app',
   icons: {
     icon: [

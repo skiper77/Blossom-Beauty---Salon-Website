@@ -30,13 +30,13 @@ export function Hero() {
           <div className={`text-center lg:text-left transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
             <div className="inline-flex items-center gap-2 bg-card px-4 py-2 rounded-full border border-border mb-6 animate-bounce" style={{ animationDuration: "3s" }}>
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-muted-foreground">Bienvenida a Blossom Beauty</span>
+              <span className="text-sm font-medium text-muted-foreground">Bienvenida a ST Studio Belleza</span>
             </div>
-            
+
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight mb-6">
-              <span className="text-balance">Unlock Your</span>
+              <span className="text-balance">ST Studio</span>
               <br />
-              <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text">Inner Glow</span>
+              <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text">Belleza</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0 mb-8">

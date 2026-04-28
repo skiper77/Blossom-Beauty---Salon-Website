@@ -2,10 +2,18 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { Heart, Sparkles, Star, CheckCircle, ArrowRight } from "lucide-react"
+import React from "react"
+import { Heart, Sparkles, Star, CheckCircle, ArrowRight, Palette, Scissors, Wind, Droplets } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ReservationModal } from "@/components/reservation-modal"
+
+const SERVICE_ICONS: Record<string, React.ElementType> = {
+  palette: Palette,
+  scissors: Scissors,
+  wind: Wind,
+  sparkles: Droplets,
+}
 
 const recommendations = [
   {
@@ -132,7 +140,7 @@ export function Recommendations() {
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-14 h-14 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                    <Sparkles className="h-7 w-7 text-primary-foreground" />
+                    {(() => { const Icon = SERVICE_ICONS[rec.icon] ?? Sparkles; return <Icon className="h-7 w-7 text-primary-foreground" /> })()}
                   </div>
                   <div>
                     <span className="text-xs font-medium text-primary uppercase tracking-wider">{rec.service}</span>

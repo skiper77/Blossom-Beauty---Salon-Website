@@ -5,9 +5,19 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
   Flower2, LogOut, Upload, Trash2, ImageIcon, Video, X, CheckCircle2, AlertCircle, Loader2,
-  DollarSign, Pencil, Save
+  DollarSign, Pencil, Save, Star, MessageSquare, Home
 } from "lucide-react"
 import type { GalleryItem } from "@/lib/supabase"
+
+type Review = {
+  id: string
+  name: string | null
+  comment: string
+  rating: number
+  avatar_url: string | null
+  is_anonymous: boolean
+  created_at: string
+}
 
 const CATEGORIES = ["Tintes", "Peinados", "Planchados", "Keratinas", "Otro"]
 const MAX_FILE_SIZE_MB = 50
@@ -51,9 +61,22 @@ export default function AdminPage() {
   const [savingService, setSavingService] = useState(false)
   const [serviceStatus, setServiceStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
+  // Reviews state
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null)
+
+  // Hero image state
+  const heroFileRef = useRef<HTMLInputElement>(null)
+  const [heroUploading, setHeroUploading] = useState(false)
+  const [heroStatus, setHeroStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
+
+  // Active tab
+  const [activeTab, setActiveTab] = useState<"inicio" | "galeria" | "precios" | "resenas">("inicio")
+
   useEffect(() => {
     fetchItems()
     fetchServices()
+    fetchReviews()
   }, [])
 
   async function fetchItems() {
@@ -142,6 +165,37 @@ export default function AdminPage() {
     }
   }
 
+  async function fetchReviews() {
+    const res = await fetch("/api/reviews")
+    if (res.ok) { const data = await res.json(); if (Array.isArray(data)) setReviews(data) }
+  }
+
+  async function handleDeleteReview(id: string) {
+    if (!confirm("¿Eliminar esta reseña?")) return
+    setDeletingReviewId(id)
+    await fetch("/api/reviews", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) })
+    setReviews((prev) => prev.filter((r) => r.id !== id))
+    setDeletingReviewId(null)
+  }
+
+  async function handleHeroUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setHeroUploading(true)
+    setHeroStatus(null)
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("title", "Foto Hero Principal")
+    formData.append("category", "Hero")
+    const res = await fetch("/api/gallery", { method: "POST", body: formData })
+    if (res.ok) {
+      setHeroStatus({ type: "success", message: "¡Foto subida! Actualiza la página principal para verla." })
+    } else {
+      setHeroStatus({ type: "error", message: "Error al subir la foto" })
+    }
+    setHeroUploading(false)
+  }
+
   async function handleSaveService(e: React.FormEvent) {
     e.preventDefault()
     if (!editingService) return
@@ -182,7 +236,7 @@ export default function AdminPage() {
             </div>
             <div>
               <h1 className="font-bold text-zinc-900 dark:text-white text-sm md:text-base font-serif">
-                Blossom Beauty
+                ST Studio Belleza
               </h1>
               <p className="text-xs text-zinc-400">Panel de administración</p>
             </div>
@@ -197,8 +251,66 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-10">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
 
+        {/* Tabs */}
+        <div className="flex gap-2 flex-wrap">
+          {([
+            { key: "inicio", label: "Inicio & Hero", icon: Home },
+            { key: "galeria", label: "Galería", icon: ImageIcon },
+            { key: "precios", label: "Precios", icon: DollarSign },
+            { key: "resenas", label: "Reseñas", icon: MessageSquare },
+          ] as const).map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+                activeTab === key
+                  ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-200 dark:shadow-pink-900/30"
+                  : "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-pink-300"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── TAB: INICIO & HERO ── */}
+        {activeTab === "inicio" && (
+        <section>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6 font-serif">Foto principal (Hero)</h2>
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8">
+            <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6">
+              Esta es la foto grande que aparece al inicio de la página junto al texto "ST Studio Belleza". Sube una nueva para reemplazarla.
+            </p>
+            <label className="flex flex-col items-center justify-center gap-4 border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-2xl p-10 cursor-pointer hover:border-pink-300 transition-colors">
+              {heroUploading
+                ? <Loader2 className="w-10 h-10 text-pink-400 animate-spin" />
+                : <Upload className="w-10 h-10 text-pink-400" />}
+              <div className="text-center">
+                <p className="font-medium text-zinc-700 dark:text-zinc-300">
+                  {heroUploading ? "Subiendo..." : "Haz clic para subir nueva foto de inicio"}
+                </p>
+                <p className="text-zinc-400 text-sm mt-1">JPG o PNG recomendado · Orientación vertical</p>
+              </div>
+              <input ref={heroFileRef} type="file" accept="image/*" className="hidden" onChange={handleHeroUpload} disabled={heroUploading} />
+            </label>
+            {heroStatus && (
+              <div className={`mt-4 flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${
+                heroStatus.type === "success" ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+              }`}>
+                {heroStatus.type === "success" ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+                {heroStatus.message}
+              </div>
+            )}
+          </div>
+        </section>
+        )}
+
+        {/* ── TAB: GALERÍA ── */}
+        {activeTab === "galeria" && (
+        <>
         {/* Upload Section */}
         <section>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6 font-serif">
@@ -334,8 +446,8 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* Gallery Management */}
-        <section>
+        {/* Gallery Management - inside galeria tab */}
+        <section id="gallery-management">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-white font-serif">
               Contenido publicado
@@ -407,7 +519,11 @@ export default function AdminPage() {
             </div>
           )}
         </section>
-        {/* Services / Prices Section */}
+        </>
+        )}
+
+        {/* ── TAB: PRECIOS ── */}
+        {activeTab === "precios" && (
         <section>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6 font-serif">
             Gestionar precios y servicios
@@ -551,6 +667,60 @@ export default function AdminPage() {
             })}
           </div>
         </section>
+        )}
+
+        {/* ── TAB: RESEÑAS ── */}
+        {activeTab === "resenas" && (
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white font-serif">Reseñas de clientas</h2>
+            <span className="text-sm text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
+              {reviews.length} reseña{reviews.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          {reviews.length === 0 ? (
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-16 text-center">
+              <MessageSquare className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+              <p className="text-zinc-400">Aún no hay reseñas publicadas</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review.id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center flex-shrink-0">
+                    <span className="font-bold text-pink-500 text-sm">
+                      {review.is_anonymous ? "A" : (review.name?.charAt(0) ?? "?")}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-zinc-900 dark:text-white text-sm">
+                        {review.is_anonymous ? "Anónima" : (review.name ?? "Sin nombre")}
+                      </p>
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? "fill-primary text-primary" : "text-zinc-300"}`} />
+                        ))}
+                      </div>
+                      <span className="text-xs text-zinc-400">
+                        {new Date(review.created_at).toLocaleDateString("es-CO")}
+                      </span>
+                    </div>
+                    <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1 line-clamp-3">{review.comment}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteReview(review.id)}
+                    disabled={deletingReviewId === review.id}
+                    className="flex-shrink-0 w-8 h-8 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 text-red-500 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
+                  >
+                    {deletingReviewId === review.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+        )}
 
       </main>
     </div>

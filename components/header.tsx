@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Menu, X, Sparkles } from "lucide-react"
+import Image from "next/image"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ReservationModal } from "@/components/reservation-modal"
 
@@ -12,9 +13,7 @@ export function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
+    const handleScroll = () => setIsScrolled(window.scrollY > 50)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
@@ -29,17 +28,26 @@ export function Header() {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      isScrolled 
-        ? "bg-background/95 backdrop-blur-md border-b border-border shadow-lg" 
+      isScrolled
+        ? "bg-background/95 backdrop-blur-md border-b border-border shadow-lg"
         : "bg-transparent"
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
-            <span className="font-serif text-xl md:text-2xl font-bold text-foreground">
-              Blossom Beauty
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:border-primary group-hover:shadow-primary/30 group-hover:shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full animate-pulse" />
+              <Image
+                src="/logo.png"
+                alt="ST Studio Belleza"
+                fill
+                className="object-cover rounded-full transition-transform duration-700 group-hover:scale-110"
+              />
+            </div>
+            <span className="font-serif text-lg md:text-xl font-bold text-foreground tracking-wide transition-colors duration-300 group-hover:text-primary">
+              ST Studio Belleza
             </span>
           </Link>
 
@@ -59,7 +67,7 @@ export function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:block">
-            <Button 
+            <Button
               onClick={() => setIsModalOpen(true)}
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25"
             >
@@ -94,11 +102,8 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Button 
-                onClick={() => {
-                  setIsModalOpen(true)
-                  setIsMenuOpen(false)
-                }}
+              <Button
+                onClick={() => { setIsModalOpen(true); setIsMenuOpen(false) }}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full mt-2 transition-all duration-300 hover:scale-[1.02]"
               >
                 Reservar Cita
