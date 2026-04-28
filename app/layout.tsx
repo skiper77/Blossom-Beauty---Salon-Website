@@ -1,15 +1,21 @@
 import type { Metadata } from 'next'
-import { Playfair_Display, Poppins } from 'next/font/google'
+import { Great_Vibes, Cormorant_Garamond, Jost } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const playfair = Playfair_Display({ 
+const greatVibes = Great_Vibes({
   subsets: ["latin"],
+  weight: ["400"],
+  variable: '--font-script'
+});
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: '--font-serif'
 });
-const poppins = Poppins({ 
+const jost = Jost({
   subsets: ["latin"],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ["300", "400", "500", "600", "700"],
   variable: '--font-sans'
 });
 
@@ -43,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${playfair.variable} ${poppins.variable} font-sans antialiased`}>
+      <body className={`${greatVibes.variable} ${cormorant.variable} ${jost.variable} font-sans antialiased`}>
         {children}
         <Analytics />
       </body>
