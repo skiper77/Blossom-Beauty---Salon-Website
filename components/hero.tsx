@@ -34,9 +34,15 @@ export function Hero() {
               <span className="text-sm font-medium text-muted-foreground">Bienvenida a ST Studio Belleza</span>
             </div>
 
-            <h1 className="font-script leading-none mb-6" style={{ fontSize: "clamp(3.5rem, 9vw, 7rem)" }}>
+            <h1
+              className="leading-none mb-6"
+              style={{
+                fontFamily: "var(--font-script), 'Great Vibes', cursive",
+                fontSize: "clamp(3.5rem, 9vw, 7rem)",
+              }}
+            >
               <span className="block text-foreground">ST Studio</span>
-              <span className="block text-primary" style={{ WebkitTextStroke: "0px" }}>Belleza</span>
+              <span className="block text-primary">Belleza</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0 mb-8">
@@ -121,14 +127,14 @@ export function Hero() {
 
               {/* Logo */}
               <div
-                className="relative w-64 h-64 drop-shadow-2xl"
+                className="relative w-64 h-64 rounded-full overflow-hidden drop-shadow-2xl ring-4 ring-primary/20"
                 style={{ animation: "heroFloat 5s ease-in-out infinite" }}
               >
                 <Image
                   src="/logo.png"
                   alt="ST Studio Belleza"
                   fill
-                  className="object-contain"
+                  className="object-cover"
                   priority
                 />
               </div>

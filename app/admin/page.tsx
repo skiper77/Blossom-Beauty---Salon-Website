@@ -375,30 +375,64 @@ export default function AdminPage() {
 
         {/* ── TAB: INICIO & HERO ── */}
         {activeTab === "inicio" && (
-          <section>
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6 font-serif">Foto principal (Hero)</h2>
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8">
-              <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6">
-                Esta es la foto grande que aparece al inicio de la página. Sube una nueva para reemplazarla.
-              </p>
-              <label className="flex flex-col items-center justify-center gap-4 border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-2xl p-10 cursor-pointer hover:border-pink-300 transition-colors">
-                {heroUploading ? <Loader2 className="w-10 h-10 text-pink-400 animate-spin" /> : <Upload className="w-10 h-10 text-pink-400" />}
-                <div className="text-center">
-                  <p className="font-medium text-zinc-700 dark:text-zinc-300">
-                    {heroUploading ? "Subiendo..." : "Haz clic para subir nueva foto de inicio"}
-                  </p>
-                  <p className="text-zinc-400 text-sm mt-1">JPG o PNG recomendado · Orientación vertical</p>
+          <>
+            <section>
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6 font-serif">Foto principal (Hero)</h2>
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8">
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6">
+                  Esta es la foto grande que aparece al inicio de la página. La más reciente que subas será la que se muestre.
+                </p>
+                <label className="flex flex-col items-center justify-center gap-4 border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-2xl p-10 cursor-pointer hover:border-pink-300 transition-colors">
+                  {heroUploading ? <Loader2 className="w-10 h-10 text-pink-400 animate-spin" /> : <Upload className="w-10 h-10 text-pink-400" />}
+                  <div className="text-center">
+                    <p className="font-medium text-zinc-700 dark:text-zinc-300">
+                      {heroUploading ? "Subiendo..." : "Haz clic para subir nueva foto de inicio"}
+                    </p>
+                    <p className="text-zinc-400 text-sm mt-1">JPG o PNG recomendado · Orientación vertical</p>
+                  </div>
+                  <input ref={heroFileRef} type="file" accept="image/*" className="hidden" onChange={handleHeroUpload} disabled={heroUploading} />
+                </label>
+                {heroStatus && (
+                  <div className={`mt-4 flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${heroStatus.type === "success" ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"}`}>
+                    {heroStatus.type === "success" ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+                    {heroStatus.message}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Fotos Hero existentes */}
+            {items.filter((i) => i.category === "Hero").length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-zinc-900 dark:text-white font-serif">Fotos de inicio guardadas</h2>
+                  <span className="text-sm text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
+                    {items.filter((i) => i.category === "Hero").length} fotos
+                  </span>
                 </div>
-                <input ref={heroFileRef} type="file" accept="image/*" className="hidden" onChange={handleHeroUpload} disabled={heroUploading} />
-              </label>
-              {heroStatus && (
-                <div className={`mt-4 flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${heroStatus.type === "success" ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"}`}>
-                  {heroStatus.type === "success" ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                  {heroStatus.message}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {items.filter((i) => i.category === "Hero").map((item) => (
+                    <div key={item.id} className="group relative bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800">
+                      <div className="aspect-[3/4] relative bg-zinc-100 dark:bg-zinc-800">
+                        <Image src={item.file_url} alt={item.title} fill className="object-cover" />
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          disabled={deletingId === item.id}
+                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg disabled:opacity-50"
+                        >
+                          {deletingId === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-xs font-medium text-zinc-900 dark:text-white truncate">{item.title}</p>
+                        <p className="text-xs text-zinc-400 mt-0.5">{new Date(item.created_at).toLocaleDateString("es-CO")}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          </section>
+              </section>
+            )}
+          </>
         )}
 
         {/* ── TAB: GALERÍA GENERAL ── */}
